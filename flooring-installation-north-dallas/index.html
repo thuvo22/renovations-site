@@ -188,7 +188,9 @@
                         <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Property Address *</label>
                         <input type="text" id="address" name="address" required 
                             class="w-full px-4 py-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
-                            placeholder="123 Main St, Frisco, TX">
+                            placeholder="123 Main St, Frisco, TX"
+                            minlength="10">
+                        <p id="address-error" class="text-red-600 text-sm mt-1 hidden"></p>
                     </div>
 
                     <!-- Square Footage -->
@@ -638,7 +640,46 @@
         // Phone number formatting and validation
         const phoneInput = document.getElementById('phone');
         const phoneError = document.getElementById('phone-error');
+        const addressInput = document.getElementById('address');
+        const addressError = document.getElementById('address-error');
         
+        // Clear address error on input
+        addressInput.addEventListener('input', function() {
+            addressError.classList.add('hidden');
+        });
+        
+        // Validate address is not fake
+        function isValidAddress(address) {
+            const addr = address.trim().toLowerCase();
+            
+            // Must be at least 10 characters
+            if (addr.length < 10) return { valid: false, reason: 'Please enter a complete street address.' };
+            
+            // Must start with a street number
+            if (!/^\d+/.test(addr)) return { valid: false, reason: 'Please include your street number (e.g., 123 Main St).' };
+            
+            // Block obvious fake addresses
+            const fakePatterns = ['fake', 'test', 'asdf', 'qwerty', 'xxx', 'abc ', '123 main', 'none', 'n/a', 'na '];
+            for (const pattern of fakePatterns) {
+                if (addr.includes(pattern)) return { valid: false, reason: 'Please enter your real property address.' };
+            }
+            
+            // Should contain a street type
+            const streetTypes = ['st', 'street', 'ave', 'avenue', 'rd', 'road', 'dr', 'drive', 'ln', 'lane', 'blvd', 'boulevard', 'ct', 'court', 'way', 'cir', 'circle', 'pl', 'place', 'pkwy', 'parkway', 'trl', 'trail'];
+            const hasStreetType = streetTypes.some(type => {
+                const regex = new RegExp('\\b' + type + '\\b', 'i');
+                return regex.test(addr);
+            });
+            if (!hasStreetType) return { valid: false, reason: 'Please include the street type (St, Ave, Dr, etc.).' };
+            
+            // Should contain a city (check for comma or common DFW cities)
+            const dfwCities = ['frisco', 'plano', 'allen', 'mckinney', 'prosper', 'dallas', 'richardson', 'carrollton', 'lewisville', 'flower mound', 'the colony', 'little elm', 'celina', 'murphy', 'wylie', 'sachse', 'garland', 'rowlett', 'rockwall', 'heath', 'forney', 'mesquite', 'irving', 'coppell', 'grapevine', 'southlake', 'colleyville', 'keller', 'roanoke', 'trophy club', 'denton', 'aubrey', 'anna', 'melissa', 'princeton', 'fairview', 'lucas'];
+            const hasCity = dfwCities.some(city => addr.includes(city)) || addr.includes(',');
+            if (!hasCity) return { valid: false, reason: 'Please include your city (e.g., Frisco, TX).' };
+            
+            return { valid: true };
+        }
+
         // Format phone as user types: (XXX) XXX-XXXX
         phoneInput.addEventListener('input', function(e) {
             let value = e.target.value.replace(/\D/g, '');
@@ -689,6 +730,16 @@
                 phoneError.textContent = phoneCheck.reason;
                 phoneError.classList.remove('hidden');
                 phoneInput.focus();
+                return;
+            }
+            
+            // Validate address before submitting
+            const addressValue = document.getElementById('address').value;
+            const addressCheck = isValidAddress(addressValue);
+            if (!addressCheck.valid) {
+                addressError.textContent = addressCheck.reason;
+                addressError.classList.remove('hidden');
+                addressInput.focus();
                 return;
             }
             
