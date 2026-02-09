@@ -38,7 +38,10 @@
     <header class="bg-white border-b border-gray-100">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
             <div class="flex items-center gap-2">
-                <img src="images/logo.png" class="h-8" alt="OnPoint Pros" />
+                <picture>
+                    <source srcset="images/logo.webp" type="image/webp">
+                    <img src="images/logo.png" class="h-8" alt="OnPoint Pros" width="51" height="56" />
+                </picture>
                 <span class="font-bold text-gray-900">OnPoint Pros</span>
                 <span class="text-sm text-gray-500 hidden sm:block">LVP Flooring Installation</span>
             </div>
@@ -111,12 +114,18 @@
                     <div class="grid grid-cols-2 gap-3 relative">
                         <!-- Before Image -->
                         <div class="relative rounded-xl overflow-hidden shadow-xl">
-                            <img src="images/banner-before.jpg" alt="Carpet flooring before LVP installation" class="w-full h-full object-cover aspect-[4/3]" loading="eager">
+                            <picture>
+                                <source srcset="images/banner-before.webp" type="image/webp">
+                                <img src="images/banner-before.jpg" alt="Carpet flooring before LVP installation" class="w-full h-full object-cover aspect-[4/3]" loading="eager" width="724" height="483">
+                            </picture>
                             <div class="absolute top-3 left-3 bg-white/90 backdrop-blur px-3 py-1.5 rounded-lg font-semibold text-gray-700 text-sm">Before</div>
                         </div>
                         <!-- After Image -->
                         <div class="relative rounded-xl overflow-hidden shadow-xl">
-                            <img src="images/banner-after.jpg" alt="LVP flooring after professional installation" class="w-full h-full object-cover aspect-[4/3]" loading="eager">
+                            <picture>
+                                <source srcset="images/banner-after.webp" type="image/webp">
+                                <img src="images/banner-after.jpg" alt="LVP flooring after professional installation" class="w-full h-full object-cover aspect-[4/3]" loading="eager" fetchpriority="high" width="724" height="483">
+                            </picture>
                             <div class="absolute top-3 left-3 bg-blue-600 px-3 py-1.5 rounded-lg font-semibold text-white text-sm">After</div>
                         </div>
                     </div>
