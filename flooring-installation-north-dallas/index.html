@@ -177,7 +177,10 @@
                         <label for="phone" class="block text-sm font-medium text-gray-700 mb-2">Phone *</label>
                         <input type="tel" id="phone" name="phone" required 
                             class="w-full px-4 py-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
-                            placeholder="(xxx) xxx-xxxx">
+                            placeholder="(555) 555-5555"
+                            pattern="\([0-9]{3}\) [0-9]{3}-[0-9]{4}"
+                            maxlength="14">
+                        <p id="phone-error" class="text-red-600 text-sm mt-1 hidden"></p>
                     </div>
 
                     <!-- Address -->
@@ -632,9 +635,62 @@
             if (e.key === 'Escape') closeLightbox();
         });
 
+        // Phone number formatting and validation
+        const phoneInput = document.getElementById('phone');
+        const phoneError = document.getElementById('phone-error');
+        
+        // Format phone as user types: (XXX) XXX-XXXX
+        phoneInput.addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length > 10) value = value.slice(0, 10);
+            
+            if (value.length >= 6) {
+                value = '(' + value.slice(0,3) + ') ' + value.slice(3,6) + '-' + value.slice(6);
+            } else if (value.length >= 3) {
+                value = '(' + value.slice(0,3) + ') ' + value.slice(3);
+            } else if (value.length > 0) {
+                value = '(' + value;
+            }
+            e.target.value = value;
+            phoneError.classList.add('hidden');
+        });
+        
+        // Validate phone is not fake
+        function isValidPhone(phone) {
+            const digits = phone.replace(/\D/g, '');
+            
+            // Must be exactly 10 digits
+            if (digits.length !== 10) return { valid: false, reason: 'Please enter a 10-digit phone number.' };
+            
+            // Block 555 exchange (fake movie numbers)
+            if (digits.slice(3, 6) === '555') return { valid: false, reason: 'Please enter a real phone number (not 555).' };
+            
+            // Block obvious fakes: 123-456-7890, 111-111-1111, etc.
+            if (/^1234567890$/.test(digits)) return { valid: false, reason: 'Please enter your real phone number.' };
+            if (/^(\d)\1{9}$/.test(digits)) return { valid: false, reason: 'Please enter a valid phone number.' };
+            
+            // Block area codes that don't exist (start with 0 or 1)
+            if (digits[0] === '0' || digits[0] === '1') return { valid: false, reason: 'Please enter a valid area code.' };
+            
+            // Block exchange codes starting with 0 or 1
+            if (digits[3] === '0' || digits[3] === '1') return { valid: false, reason: 'Please enter a valid phone number.' };
+            
+            return { valid: true };
+        }
+
         // Form submission handler
         document.getElementById('quote-form-element').addEventListener('submit', async function(e) {
             e.preventDefault();
+            
+            // Validate phone before submitting
+            const phoneValue = document.getElementById('phone').value;
+            const phoneCheck = isValidPhone(phoneValue);
+            if (!phoneCheck.valid) {
+                phoneError.textContent = phoneCheck.reason;
+                phoneError.classList.remove('hidden');
+                phoneInput.focus();
+                return;
+            }
             
             const submitBtn = this.querySelector('button[type="submit"]');
             const originalText = submitBtn.innerHTML;
