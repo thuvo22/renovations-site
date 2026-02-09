@@ -1,0 +1,31 @@
+# Netlify configuration for renovations.onpointprostx.com
+
+[build]
+  publish = "."
+
+# Cache static assets for 1 year (immutable)
+[[headers]]
+  for = "/flooring-installation-north-dallas/images/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/flooring-installation-north-dallas/*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/flooring-installation-north-dallas/*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+# HTML pages - short cache with revalidation
+[[headers]]
+  for = "/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
+
+[[headers]]
+  for = "/flooring-installation-north-dallas/*.html"
+  [headers.values]
+    Cache-Control = "public, max-age=3600, must-revalidate"
