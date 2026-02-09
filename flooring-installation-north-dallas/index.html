@@ -22,6 +22,9 @@
     
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=AW-17919168051"></script>
+    
+    <!-- Google Places API for address autocomplete -->
+    <script async src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB-x85kDk11rX3lnRU0NxQC8kj2zI4_7-s&libraries=places&callback=initAutocomplete"></script>
     <script>
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
@@ -188,9 +191,10 @@
                         <label for="address" class="block text-sm font-medium text-gray-700 mb-2">Property Address *</label>
                         <input type="text" id="address" name="address" required 
                             class="w-full px-4 py-4 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-lg"
-                            placeholder="123 Main St, Frisco, TX"
-                            minlength="10">
+                            placeholder="Start typing your address..."
+                            autocomplete="off">
                         <p id="address-error" class="text-red-600 text-sm mt-1 hidden"></p>
+                        <p id="address-hint" class="text-gray-500 text-sm mt-1">Select your address from the dropdown</p>
                     </div>
 
                     <!-- Square Footage -->
@@ -733,11 +737,19 @@
                 return;
             }
             
-            // Validate address before submitting
+            // Validate address - prefer autocomplete selection
             const addressValue = document.getElementById('address').value;
-            const addressCheck = isValidAddress(addressValue);
-            if (!addressCheck.valid) {
-                addressError.textContent = addressCheck.reason;
+            if (typeof addressSelected !== 'undefined' && !addressSelected && addressValue.length > 0) {
+                // User typed but didn't select from dropdown - still validate
+                const addressCheck = isValidAddress(addressValue);
+                if (!addressCheck.valid) {
+                    addressError.textContent = 'Please select an address from the dropdown, or enter a complete address.';
+                    addressError.classList.remove('hidden');
+                    addressInput.focus();
+                    return;
+                }
+            } else if (!addressValue || addressValue.length < 10) {
+                addressError.textContent = 'Please enter your property address.';
                 addressError.classList.remove('hidden');
                 addressInput.focus();
                 return;
@@ -779,6 +791,56 @@
                 alert('Something went wrong. Please call us at (469) 238-1719.');
             }
         });
+    </script>
+    
+    <!-- Google Places Autocomplete -->
+    <script>
+        let addressSelected = false;
+        
+        function initAutocomplete() {
+            const addressInput = document.getElementById('address');
+            const addressHint = document.getElementById('address-hint');
+            
+            // Create autocomplete restricted to Texas addresses
+            const autocomplete = new google.maps.places.Autocomplete(addressInput, {
+                componentRestrictions: { country: 'us' },
+                fields: ['formatted_address', 'geometry'],
+                types: ['address']
+            });
+            
+            // Bias results to DFW area
+            const dfwBounds = new google.maps.LatLngBounds(
+                new google.maps.LatLng(32.5, -97.5),  // SW corner
+                new google.maps.LatLng(33.5, -96.5)   // NE corner
+            );
+            autocomplete.setBounds(dfwBounds);
+            
+            // When user selects an address
+            autocomplete.addListener('place_changed', function() {
+                const place = autocomplete.getPlace();
+                if (place.formatted_address) {
+                    addressInput.value = place.formatted_address;
+                    addressSelected = true;
+                    addressHint.textContent = '✓ Address selected';
+                    addressHint.classList.remove('text-gray-500');
+                    addressHint.classList.add('text-green-600');
+                    document.getElementById('address-error').classList.add('hidden');
+                }
+            });
+            
+            // Reset flag if user types after selecting
+            addressInput.addEventListener('input', function() {
+                if (addressSelected) {
+                    addressSelected = false;
+                    addressHint.textContent = 'Select your address from the dropdown';
+                    addressHint.classList.remove('text-green-600');
+                    addressHint.classList.add('text-gray-500');
+                }
+            });
+        }
+        
+        // Fallback if Google API not loaded
+        window.initAutocomplete = window.initAutocomplete || function() {};
     </script>
 
 </body>
